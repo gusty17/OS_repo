@@ -463,9 +463,27 @@ struct proc *choose_next_process(void) {
     }
     return earliest;
   }
+  else if (sched_mode == SCHED_PRIORITY) {
+    // Priority: pick the runnable process with the highest priority
+    struct proc *high_p = 0;
+    for (p = proc; p < &proc[NPROC]; p++) {
+      if (p->state != RUNNABLE)
+        continue;
+      if (high_p == 0
+          || p->priority  > high_p->priority   // pick higher priority first
+          || (p->priority == high_p->priority
+              && p->creation_time < high_p->creation_time)
+         ) {
+        // tie-breaker: earlier arrival
+        high_p = p;
+      }
+    }
+    return high_p;
+  }
 
   return 0;
 }
+
 
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
