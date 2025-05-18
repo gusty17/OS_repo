@@ -155,6 +155,7 @@ UPROGS=\
 	$U/_getptable\
 	$U/_datetime\
 	$U/_rand\
+	$U/_test\
 
 
 fs.img: mkfs/mkfs README $(UPROGS)
