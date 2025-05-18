@@ -109,6 +109,7 @@ struct proc {
   uint run_time;               // How long the process has run
   uint start_time;
   uint end_time;
+  int priority;
 };
 // schedular constants to set the scheduling mode
 #define SCHED_ROUND_ROBIN 0
