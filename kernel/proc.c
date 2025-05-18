@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "procinfo.h"
 
 struct cpu cpus[NCPU];
 
@@ -33,7 +34,7 @@ void
 proc_mapstacks(pagetable_t kpgtbl)
 {
   struct proc *p;
-  
+
   for(p = proc; p < &proc[NPROC]; p++) {
     char *pa = kalloc();
     if(pa == 0)
@@ -48,7 +49,7 @@ void
 procinit(void)
 {
   struct proc *p;
-  
+
   initlock(&pid_lock, "nextpid");
   initlock(&wait_lock, "wait_lock");
   for(p = proc; p < &proc[NPROC]; p++) {
@@ -93,7 +94,7 @@ int
 allocpid()
 {
   int pid;
-  
+
   acquire(&pid_lock);
   pid = nextpid;
   nextpid = nextpid + 1;
@@ -145,7 +146,7 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
-
+  // kjfdkjhfdaijhfdj
   return p;
 }
 
@@ -236,7 +237,7 @@ userinit(void)
 
   p = allocproc();
   initproc = p;
-  
+
   // allocate one user page and copy initcode's instructions
   // and data into it.
   uvmfirst(p->pagetable, initcode, sizeof(initcode));
@@ -372,7 +373,7 @@ exit(int status)
 
   // Parent might be sleeping in wait().
   wakeup(p->parent);
-  
+
   acquire(&p->lock);
 
   p->xstate = status;
@@ -428,7 +429,7 @@ wait(uint64 addr)
       release(&wait_lock);
       return -1;
     }
-    
+
     // Wait for a child to exit.
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
@@ -548,7 +549,7 @@ void
 sleep(void *chan, struct spinlock *lk)
 {
   struct proc *p = myproc();
-  
+
   // Must acquire p->lock in order to
   // change p->state and then call sched.
   // Once we hold p->lock, we can be
@@ -627,7 +628,7 @@ int
 killed(struct proc *p)
 {
   int k;
-  
+
   acquire(&p->lock);
   k = p->killed;
   release(&p->lock);
@@ -692,4 +693,39 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+// get proc table
+
+int getptable(int max, uint64 buff) {
+    struct process_info info[NPROC];
+    struct proc *p;
+    int count = 0;
+
+    // Loop through process table
+    // proc is array of all processes
+    //NPROC is the maximum number of processes.
+    for (p = proc; p < &proc[NPROC] && count < max; p++) {
+        // Skip unused processes
+        if (p->state == UNUSED)
+            continue;
+        // Fill in info structure
+        info[count].pid = p->pid;
+        // Set parent pid safely
+        if (p->parent != 0)
+          info[count].ppid = p->parent->pid;
+        else // if p->parent return 0 that mean this proc has no parent
+          info[count].ppid = 0;
+
+        info[count].state = p->state;
+        info[count].sz = p->sz;
+        safestrcpy(info[count].name, p->name, sizeof(info[count].name)); // info.name = p->name
+        count++;
+    }
+    int size = count * sizeof(struct process_info);
+    // Copy to user memory safely
+    int copied = copyout(myproc()->pagetable,buff,(char *)info, size);
+    if (copied < 0)
+        return -1; // copy fail
+    return count;
 }

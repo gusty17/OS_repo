@@ -11,5 +11,11 @@
     "editor.trimAutoWhitespace": true,
     "files.trimTrailingWhitespace": true,
     "files.trimFinalNewlines": true,
-    "files.insertFinalNewline": true
+    "files.insertFinalNewline": true,
+    "files.associations": {
+        "riscv.h": "c",
+        "timeinfo.h": "c",
+        "proc.h": "c",
+        "types.h": "c"
+    }
 }

@@ -1,4 +1,8 @@
+#include "kernel/types.h"
+
 struct stat;
+struct process_info;
+struct rtcdate;
 
 // system calls
 int fork(void);
@@ -22,7 +26,12 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-
+int kbdint(void);
+int countsyscall(void);
+int getppid(void);
+int getptable(int max, struct process_info *ptable);
+int datetime(struct rtcdate *r);
+int random(void);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

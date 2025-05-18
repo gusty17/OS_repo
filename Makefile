@@ -28,6 +28,7 @@ OBJS = \
   $K/sysfile.o \
   $K/kernelvec.o \
   $K/plic.o \
+  $K/sysutil.o \
   $K/virtio_disk.o
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
@@ -77,6 +78,8 @@ endif
 ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
+
+CFLAGS += -DBOOT_EPOCH=$(shell date +%s)#This sets time when xv6 compiled establishing a known start time for the kernel.
 
 LDFLAGS = -z max-page-size=4096
 
@@ -139,6 +142,20 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
+	$U/_add\
+	$U/_sleep\
+	$U/_fact\
+	$U/_touch\
+	$U/_mv\
+	$U/_cp\
+	$U/_find\
+	$U/_kbdint\
+	$U/_countsyscall\
+	$U/_getppid\
+	$U/_getptable\
+	$U/_datetime\
+	$U/_rand\
+
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

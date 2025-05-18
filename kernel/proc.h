@@ -80,7 +80,8 @@ struct trapframe {
 };
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
-
+// zombie dead
+//unused no location in memory
 // Per-process state
 struct proc {
   struct spinlock lock;
