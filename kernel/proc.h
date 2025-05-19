@@ -107,9 +107,9 @@ struct proc {
   char name[16];               // Process name (debugging)
   uint creation_time;          // Ticks when process was created
   uint run_time;               // How long the process has run
-  uint start_time;
-  uint end_time;
-  int priority;
+  int priority;                // priority of the process
+  uint turnaround_time;        //The average time taken from process creation to its completion
+  uint waiting_time;           // The average time a process spends in the ready queue, excluding execution time
 };
 // schedular constants to set the scheduling mode
 #define SCHED_ROUND_ROBIN 0

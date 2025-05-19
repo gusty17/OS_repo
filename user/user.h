@@ -3,7 +3,7 @@
 struct stat;
 struct process_info;
 struct rtcdate;
-
+struct avg_t;
 // system calls
 int fork(void);
 int exit(int) __attribute__((noreturn));
@@ -32,6 +32,7 @@ int getppid(void);
 int getptable(int max, struct process_info *ptable);
 int datetime(struct rtcdate *r);
 int random(void);
+int getavgt(struct avg_t *a);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

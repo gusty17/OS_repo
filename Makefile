@@ -152,7 +152,7 @@ UPROGS=\
 	$U/_kbdint\
 	$U/_countsyscall\
 	$U/_getppid\
-	$U/_getptable\
+	$U/_ps\
 	$U/_datetime\
 	$U/_rand\
 	$U/_test\

@@ -150,6 +150,8 @@ found:
   // initialize new variables here
   p->creation_time = ticks;
   p->run_time = 0;
+  p->waiting_time=0;
+  p->turnaround_time=0;
 
   return p;
 }
@@ -175,7 +177,11 @@ freeproc(struct proc *p)
   p->xstate = 0;
   p->state = UNUSED;
   p->creation_time = ticks;
+  //printf ("total time : %u , running time: %u ,waiting time: %u  \n",p->turnaround_time,p->run_time,p->waiting_time);
   p->run_time = 0;
+  p->waiting_time=0;
+  p->turnaround_time=0;
+
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -350,6 +356,11 @@ reparent(struct proc *p)
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait().
+// at top of proc.c
+static uint total_wait    = 0;
+static uint total_turn    = 0;
+static uint total_run     = 0;
+static uint total_procs   = 0;
 void
 exit(int status)
 {
@@ -383,6 +394,12 @@ exit(int status)
   acquire(&p->lock);
 
   p->xstate = status;
+  // in exit(), before p->state = ZOMBIE;
+  total_wait  += p->waiting_time;
+  total_turn  += p->turnaround_time;
+  total_run   += p->run_time;
+  total_procs += 1;
+
   p->state = ZOMBIE;
 
   release(&wait_lock);
@@ -440,11 +457,28 @@ wait(uint64 addr)
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
 }
-int sched_mode = SCHED_ROUND_ROBIN;  // Assign the chosen scheduler here
+//that tracks performance metrics by counting the number of ticks each process spends in different states
+void update_time()
+{
+  struct proc* p;
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->state == RUNNING) {
+      p->run_time++;
+      p->turnaround_time++;
+    }
+    else {
+      p->waiting_time++;
+      p->turnaround_time++;
+    }
+    release(&p->lock);
+  }
+}
+
+int sched_mode = SCHED_ROUND_ROBIN;  //Assign the chosen scheduler here
 
 struct proc *choose_next_process(void) {
   struct proc *p;
-
   if (sched_mode == SCHED_ROUND_ROBIN) {
     // Simple RR: return the first runnable we see
     for (p = proc; p < &proc[NPROC]; p++) {
@@ -470,7 +504,7 @@ struct proc *choose_next_process(void) {
       if (p->state != RUNNABLE)
         continue;
       if (high_p == 0
-          || p->priority  > high_p->priority   // pick higher priority first
+          || p->priority  > high_p->priority   // pick higher priority first higer value means higher priority
           || (p->priority == high_p->priority
               && p->creation_time < high_p->creation_time)
          ) {
@@ -742,19 +776,7 @@ procdump(void)
     printf("\n");
   }
 }
-//that tracks performance metrics by counting the number of ticks each process spends in different states
 
-void update_time()
-{
-  struct proc* p;
-  for (p = proc; p < &proc[NPROC]; p++) {
-    acquire(&p->lock);
-    if (p->state == RUNNING) {
-      p->run_time++;
-    }
-    release(&p->lock);
-  }
-}
 // get proc table
 
 int getptable(int max, uint64 buff) {
@@ -788,4 +810,32 @@ int getptable(int max, uint64 buff) {
     if (copied < 0)
         return -1; // copy fail
     return count;
+}
+
+int sys_getavgt(void)
+{
+    int user_ptr;      // pointer to user‐space struct
+    argint(0, &user_ptr);
+    // compute averages as integers
+    int aw, at, ar;
+    if (total_procs != 0) {
+        aw = total_wait / total_procs;
+        at = total_turn / total_procs;
+        ar = total_run  / total_procs;
+    } else {
+        aw = 0;
+        at = 0;
+        ar = 0;
+    }
+    // copy out a small struct {int aw, at, ar;}
+    struct avg_t { int wait, turn, run; } a = { aw, at, ar };
+    if(copyout(myproc()->pagetable, user_ptr, (char*)&a, sizeof(a)) < 0)
+        return -1;
+
+    /*if (sched_mode == SCHED_FCFS)
+      printf("suuuuuuuuuuiiiiiiiii\n");
+    else
+      printf("ahhhhhhhhhhhhhhhdadhhdf");
+    */
+    return 0;
 }

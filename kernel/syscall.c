@@ -79,7 +79,7 @@ argstr(int n, char *buf, int max)
   return fetchstr(addr, buf, max);
 }
 
-// Prototypes for the functions that handle system calls.
+//Prototypes for the functions that handle system calls.
 extern uint64 sys_fork(void);
 extern uint64 sys_exit(void);
 extern uint64 sys_wait(void);
@@ -107,7 +107,7 @@ extern uint64 sys_getppid(void);
 extern uint64 sys_getptable(void);
 extern uint64 sys_datetime(void);
 extern uint64 sys_random(void);
-
+extern uint64 sys_getavgt(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -139,6 +139,8 @@ static uint64 (*syscalls[])(void) = {
 [SYS_getptable] sys_getptable,
 [SYS_datetime]    sys_datetime,
 [SYS_random]    sys_random,
+[SYS_getavgt]    sys_getavgt,
+
 
 
 };
