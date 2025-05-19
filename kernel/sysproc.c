@@ -25,7 +25,6 @@ uint64 sys_getpid(void)
 uint64 sys_getppid(void)
 {
     struct proc *curproc = myproc(); //myproc () return a pointer to the current proc
-
     //->	Access member (parent) of struct that pointer (curproc) points to
     if (curproc->parent)
         return curproc->parent->pid;

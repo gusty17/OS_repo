@@ -1,7 +1,7 @@
 #include "types.h"
 
-extern int kbdint_count;
-extern int syscall_counter;
+extern int kbdint_count; // in console.c
+extern int syscall_counter; //in syscall.c
 //static uint64 seed = 1;
 
 uint64

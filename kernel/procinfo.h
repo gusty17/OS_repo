@@ -5,5 +5,5 @@ struct process_info {
   int ppid;
   int state;
   char name[16];
-  uint64 sz;  // memory size
+  uint64 sz;  //memory size
 };

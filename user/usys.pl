@@ -42,3 +42,4 @@ entry("getppid");
 entry("getptable");
 entry("datetime");
 entry("random");
+entry("getavgt");

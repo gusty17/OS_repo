@@ -3,6 +3,11 @@
 #include "user/user.h"
 #include "kernel/fcntl.h"
 
+struct avg_t {
+  int wait;
+  int turn;
+  int run;
+};
 
 int main(int argc, char *argv[]) {
 
@@ -28,8 +33,8 @@ int main(int argc, char *argv[]) {
       printf("[pid=%d] created\n", getpid());
 
       for (z = 0; z < steps; z += 1) {
-         // copy buffers one inside the other and back
-         // used for wasting cpu time
+         //copy buffers one inside the other and back
+         //used for wasting cpu time
          memmove(buffer_dst, buffer_src, 1024);
          memmove(buffer_src, buffer_dst, 1024);
       }
@@ -42,5 +47,14 @@ int main(int argc, char *argv[]) {
     printf("[pid=%d] terminated\n", pid);
   }
 
+  struct avg_t a;
+  if(getavgt(&a) < 0){
+      printf("getavgt failed\n");
+      exit(1);
+  }
+
+  printf("Average waiting time    : %d ticks\n", a.wait);
+  printf("Average turnaround time : %d ticks\n", a.turn);
+  printf("Average run time        : %d ticks\n", a.run);
   exit(0);
 }
