@@ -467,7 +467,7 @@ void update_time()
       p->run_time++;
       p->turnaround_time++;
     }
-    else {
+    else if (p->state == RUNNABLE || p->state == SLEEPING){
       p->waiting_time++;
       p->turnaround_time++;
     }

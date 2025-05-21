@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     exit(0);
   }
 
-  int num1 = atoi(argv[1]);
+  int num1 = atoi(argv[1]); //atoi change it to int
   int num2 = atoi(argv[2]);
 
   int total = num1 + num2;

@@ -15,8 +15,8 @@ char* fmtname(char *path) {
   // Return just the filename
   if(strlen(p) >= DIRSIZ)
     return p;
-  memmove(buf, p, strlen(p));
-  buf[strlen(p)] = 0;
+  memmove(buf, p, strlen(p)); // move p to buf
+  buf[strlen(p)] = 0; //end buf with 0
   return buf;
 }
 
@@ -24,11 +24,11 @@ char* fmtname(char *path) {
 void find(char *path, char *target) {
   char buf[512], *p;
   int fd;
-  struct dirent de;
-  struct stat st;
+  struct dirent de;// directory entry
+  struct stat st; // file status meta data about the file ex size,...
 
   // Open the directory
-  if((fd = open(path, 0)) < 0){
+  if((fd = open(path, 0)) < 0){ // open with read only key
     printf("find: cannot open %s\n", path);
     return;
   }
@@ -55,7 +55,7 @@ void find(char *path, char *target) {
     return;
   }
 
-  strcpy(buf, path);
+  strcpy(buf, path); // copy path to buf
   p = buf + strlen(buf);
   *p++ = '/';
 
