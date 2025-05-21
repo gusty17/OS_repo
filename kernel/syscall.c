@@ -141,8 +141,6 @@ static uint64 (*syscalls[])(void) = {
 [SYS_random]    sys_random,
 [SYS_getavgt]    sys_getavgt,
 
-
-
 };
 int syscall_counter = 0 ;
 void

@@ -124,8 +124,12 @@ void unix_to_rtc(uint timestamp, struct rtcdate *r) {
   int year = 1970;
   while (1) {
     // true length of this year
-    int days_in_year = 365
-       + ((year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) ? 1 : 0);
+    int days_in_year;
+      // + ((year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) ? 1 : 0);
+    if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
+      days_in_year= 366;
+    else
+      days_in_year = 365;
     if (days < days_in_year)
       break;
     days -= days_in_year;
@@ -153,46 +157,41 @@ extern uint ticks;
 uint64 sys_datetime(void)
 {
   uint64 user_addr;
-  argaddr(0, &user_addr) ;
-
-  uint curr = BOOT_EPOCH + (ticks / 100);
+  //user -> kernel
+  argaddr(0, &user_addr) ; //btakhod pointer (&r) mn el user space w t3melo store fe variable asmo user_addr 3shan a3rf astghdemo fe elkernel
+  int three_hour = 3 * 60 * 60;
+  uint curr = (BOOT_EPOCH + three_hour) + (ticks / 10);
   struct rtcdate r;
 
   // Use a conversion function (see below)
   unix_to_rtc(curr, &r);
-
-  if (copyout(myproc()->pagetable, user_addr, (char *)&r, sizeof(r)) < 0)
-    return -1;
+  //kernel -> user
+  if (copyout(myproc()->pagetable, user_addr, (char *)&r, sizeof(r)) < 0) //copy r to user_addr (pointer to r from user space) w elsize of copy = sizeof(r)
+    return -1; //failed copy
   return 0;
 }
-
 
 //random
 #define LCG_A 1103515245
 #define LCG_C 12345
 
-uint64
+int
 sys_random(void)
 {
   static uint64 seed;
-  static int seeded = 0;
-  uint64 now;
 
-  // 1) seed once
-  if (!seeded) {
-    // Option A: use the ticks variable (incremented on each timer interrupt)
-    extern uint ticks;
-    acquire(&tickslock);
-    now = ticks;
-    release(&tickslock);
+  // Use ticks as the changing seed
+  extern uint ticks;
+  acquire(&tickslock);
+  seed = ticks;
+  release(&tickslock);
 
-    seed = now;
-    seeded = 1;
-  }
-
-  // 2) next LCG value
+  // Apply LCG
   seed = seed * LCG_A + LCG_C;
 
-  // 3) return lower 31 bits (positive)
-  return (int)(seed & 0x7fffffff);
+  // Return number in range [0, 100]
+  return (seed % 101);
+
+  //return (int)(seed & 0x7fffffff);  // old
+
 }
