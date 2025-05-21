@@ -103,6 +103,23 @@ allocpid()
   return pid;
 }
 
+static int p_random(void)
+{
+  static uint64 pseed;
+
+  // Use ticks as the changing seed
+  extern uint ticks;
+  acquire(&tickslock);
+  pseed = ticks;
+  release(&tickslock);
+
+  // Apply LCG
+  pseed = pseed * 1103515245 + 12345;
+
+  // Return number in range [0, 100]
+  return (pseed % 11);
+
+}
 // Look in the process table for an UNUSED proc.
 // If found, initialize state required to run in the kernel,
 // and return with p->lock held.
@@ -152,7 +169,8 @@ found:
   p->run_time = 0;
   p->waiting_time=0;
   p->turnaround_time=0;
-
+  p->priority = p_random() ;
+  //printf("[pid=%d] assigned priority=%d\n", p->pid, p->priority); //for debugging
   return p;
 }
 
@@ -475,7 +493,7 @@ void update_time()
   }
 }
 
-int sched_mode = SCHED_ROUND_ROBIN;  //Assign the chosen scheduler here
+int sched_mode = SCHED_PRIORITY;  //Assign the chosen scheduler here
 
 struct proc *choose_next_process(void) {
   struct proc *p;
