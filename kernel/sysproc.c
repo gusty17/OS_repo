@@ -125,7 +125,6 @@ void unix_to_rtc(uint timestamp, struct rtcdate *r) {
   while (1) {
     // true length of this year
     int days_in_year;
-      // + ((year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) ? 1 : 0);
     if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
       days_in_year= 366;
     else
