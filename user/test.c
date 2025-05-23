@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
   for (k = 0; k < nprocess; k++) {
     // ensure different creation times (proc->ctime)
     // needed for properly testing FCFS scheduling
-    sleep(2);
+    //sleep(2);
 
     pid = fork();
     if (pid < 0) {
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     }
     else if (pid == 0) {
       // child
-      printf("[pid=%d] created\n", getpid());
+     //printf("[pid=%d] created\n", getpid()); ba3mel print fe el fork function in proc.c
 
       for (z = 0; z < steps; z += 1) {
          //copy buffers one inside the other and back
@@ -41,10 +41,10 @@ int main(int argc, char *argv[]) {
       exit(0);
     }
   }
-
+  printf ("########################################\n");
   for (k = 0; k < nprocess; k++) {
     pid = wait(0);
-    printf("[pid=%d] terminated\n", pid);
+    //printf("[pid=%d] terminated\n", pid); ba3mel print fe el wait function in proc.c
   }
 
   struct avg_t a;

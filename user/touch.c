@@ -16,10 +16,10 @@ main(int argc, char *argv[])
     exit(1);
   }
 
-  int fd = open(argv[1],O_CREATE|O_RDWR);                    		// create file if it doesn't exist or fail if the file already exists or open for writing
+  int fd = open(argv[1],O_CREATE|O_RDWR);// create file if it doesn't exist or fail if the file already exists or open for read writing
 
   if(fd < 0){                                                              		// negative value means file already exists or there's an error
-    printf("touch: file '%s' already exists or cannot be created\n", argv[1]);
+    printf("touch: file %s cannot be created\n", argv[1]);
     exit(1);
   }
 

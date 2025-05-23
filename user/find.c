@@ -22,9 +22,10 @@ char* fmtname(char *path) {
 
 // Recursive find function that opens path directory and reads each entry, if entry is file it checks if the name matches the target
 void find(char *path, char *target) {
+  //assume elpath kan asln /home/user
   char buf[512], *p;
   int fd;
-  struct dirent de;// directory entry
+  struct dirent de;// directory entry feha elname w
   struct stat st; // file status meta data about the file ex size,...
 
   // Open the directory
@@ -33,7 +34,7 @@ void find(char *path, char *target) {
     return;
   }
 
-  if(fstat(fd, &st) < 0){
+  if(fstat(fd, &st) < 0){ // fstat bt2ole fd da directory wala file w t3melha store fe st
     printf("find: cannot stat %s\n", path);
     close(fd);
     return;
@@ -57,10 +58,10 @@ void find(char *path, char *target) {
 
   strcpy(buf, path); // copy path to buf
   p = buf + strlen(buf);
-  *p++ = '/';
+  *p++ = '/'; //output  bta3 el satr da  p = /home/user/
 
   while(read(fd, &de, sizeof(de)) == sizeof(de)){
-    if(de.inum == 0)
+    if(de.inum == 0) // if inum = 0 means empty directory file/directory name = space " " -> de.inum == 0
       continue;
 
     // Skip "." and ".."
@@ -68,8 +69,8 @@ void find(char *path, char *target) {
     if(strcmp(de.name, ".") == 0 || strcmp(de.name, "..") == 0)
       continue;
 
-    memmove(p, de.name, DIRSIZ);
-    p[DIRSIZ] = 0;
+    memmove(p, de.name, DIRSIZ); //add name to p
+    p[DIRSIZ] = 0; //end p with 0 (null)
 
     if(stat(buf, &st) < 0){
       printf("find: cannot stat %s\n", buf);

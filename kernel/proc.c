@@ -105,20 +105,9 @@ allocpid()
 
 static int p_random(void)
 {
-  static uint64 pseed;
-
-  // Use ticks as the changing seed
-  extern uint ticks;
-  acquire(&tickslock);
-  pseed = ticks;
-  release(&tickslock);
-
-  // Apply LCG
-  pseed = pseed * 1103515245 + 12345;
-
-  // Return number in range [0, 100]
-  return (pseed % 11);
-
+  static uint64 next= 1;
+  next = next * 1103515245 + 12345;
+  return (next/65536) % 32768;
 }
 // Look in the process table for an UNUSED proc.
 // If found, initialize state required to run in the kernel,
@@ -169,8 +158,7 @@ found:
   p->run_time = 0;
   p->waiting_time=0;
   p->turnaround_time=0;
-  p->priority = p_random() ;
-  //printf("[pid=%d] assigned priority=%d\n", p->pid, p->priority); //for debugging
+  p->priority = (p_random()%10)+1 ; // random priority between 1 and 10
   return p;
 }
 
@@ -194,12 +182,12 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
-  p->creation_time = ticks;
-  //printf ("total time : %u , running time: %u ,waiting time: %u  \n",p->turnaround_time,p->run_time,p->waiting_time);
-  p->run_time = 0;
-  p->waiting_time=0;
-  p->turnaround_time=0;
 
+  p->creation_time = 0;
+  p->run_time = 0 ;
+  p->waiting_time = 0;
+  p->turnaround_time = 0;
+  p->priority = 0;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -342,7 +330,6 @@ fork(void)
   safestrcpy(np->name, p->name, sizeof(p->name));
 
   pid = np->pid;
-
   release(&np->lock);
 
   acquire(&wait_lock);
@@ -352,7 +339,8 @@ fork(void)
   acquire(&np->lock);
   np->state = RUNNABLE;
   release(&np->lock);
-
+  //############################################################
+  printf("[pid=%d] created with priority %d\n", pid, np->priority);
   return pid;
 }
 
@@ -412,11 +400,15 @@ exit(int status)
   acquire(&p->lock);
 
   p->xstate = status;
+
   // in exit(), before p->state = ZOMBIE;
+
   total_wait  += p->waiting_time;
   total_turn  += p->turnaround_time;
   total_run   += p->run_time;
   total_procs += 1;
+  //############################################################3
+  printf("pid = %d is terminated with run time= %d, waiting time= %d, turnaround time= %d its priority = %d\n",p->pid,p->run_time,p->waiting_time,p->turnaround_time,p->priority);
 
   p->state = ZOMBIE;
 
@@ -459,6 +451,7 @@ wait(uint64 addr)
           freeproc(pp);
           release(&pp->lock);
           release(&wait_lock);
+          //printf("[pid=%d] terminated with priority %d\n", pid,pp->priority);
           return pid;
         }
         release(&pp->lock);
@@ -510,7 +503,7 @@ struct proc *choose_next_process(void) {
     for (p = proc; p < &proc[NPROC]; p++) {
       if (p->state != RUNNABLE)
         continue;
-      if (earliest == 0 || p->creation_time < earliest->creation_time)
+      if (earliest == 0 || p->creation_time < earliest->creation_time || (p->creation_time== earliest->creation_time && p->pid < earliest->pid))
         earliest = p;
     }
     return earliest;
@@ -520,11 +513,11 @@ struct proc *choose_next_process(void) {
     struct proc *high_p = 0;
     for (p = proc; p < &proc[NPROC]; p++) {
       if (p->state != RUNNABLE)
-        continue;
+        continue; // not ready to run
       if (high_p == 0
           || p->priority  > high_p->priority   // pick higher priority first higer value means higher priority
-          || (p->priority == high_p->priority
-              && p->creation_time < high_p->creation_time)
+          || (p->priority == high_p->priority && p->creation_time < high_p->creation_time)
+          || (p->creation_time== high_p->creation_time && p->pid < high_p->pid)
          ) {
         // tie-breaker: earlier arrival
         high_p = p;
